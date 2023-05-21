@@ -1,0 +1,128 @@
+<!-- capture the data -->
+<script>
+    // Insert Data
+$('#btnsave').click(function(){
+    // console.log("Save Button Clicked");
+let output ='';
+let sid = $("#stuid").val();
+let nm = $("#nameid").val();
+let em = $("#emailid").val();
+let pw = $("#passwordid").val();
+let csr = $("input[name=csrfmiddlewaretoken]").val();
+if(nm===''){
+    $("#msg").text("Please Enter Name");
+            $("#msg").show();
+}
+else if(em===''){
+    $("#msg").text("Please Enter Email");
+            $("#msg").show();
+}
+else if(pw===''){
+    $("#msg").text("Please Enter Password");
+            $("#msg").show();
+}
+else{
+    // console.log(nm)
+    // console.log(em)
+    // console.log(pw)
+    mydata = {stuid:sid,name:nm , email:em ,password:pw , csrfmiddlewaretoken: csr};
+    $.ajax({
+        url: "{% url 'save' %}",
+        method : "POST",
+        data : mydata,
+        
+        success: function(data){
+            // console.log(data);
+            x=data.student_data;
+            if(data.status=="Save"){
+                $("#msg").text("Form Submitted Successfully");
+                        $("#msg").show();
+                // console.log(data.student_data);
+                for (let i = 0; i < x.length; i++) {
+                            output += "<tr><td>" +
+                                x[i].id +
+                                "</td><td>" +
+                                x[i].name +
+                                "</td><td>" +
+                                x[i].email +
+                                "</td><td>" +
+                                x[i].password +
+                                "</td><td><input type='button' class='btn btn-warning btn-sm btn-edit' value='Edit' data-sid=" +
+                                x[i].id +
+                                "> <input type='button' class='btn btn-danger btn-sm btn-del' value='Delete' data-sid=" +
+                                x[i].id +
+                                ">";
+                        }
+                // for(i=0; i<x.length;i++){
+                //     output += "<tr><td>"+ x[i].id + "</td><td>" + x[i].name +"</td><td>"+x[i].email +"</td><td>"
+                //     +x[i].password +"</td><> <input type='button' data-sid="+ x[i].id + " value='Eidt' class='btn btn-warning btn-sm btn-edit'> <input type='button' data-sid="+ x[i].id + " value='Delete' class='btn btn-danger btn-sm btn-del'></td></tr>"
+                // }
+                $('#tbody').html(output);
+                $('#stuid').val('');
+                $("form")[0].reset();
+            }
+            if (data.status==0){
+                $("#msg").text("Unable to Save Form");
+                        $("#msg").show();
+                $('#stuid').val('');
+                $("form")[0].reset();
+            }
+        },
+    });
+}
+
+});
+// Delete Data
+$("tbody").on("click" , ".btn-del" , function(){
+    // console.log("Delete Button Clicked");
+    let id = $(this).attr("data-sid");
+    let csr = $("input[name=csrfmiddlewaretoken]").val();
+    // console.log(id);
+    mydata = {sid :id , csrfmiddlewaretoken:csr};
+    mythis = this;
+    $.ajax({
+        url:"{% url 'delete' %}",
+        method: "POST",
+        data:mydata,
+        success:function(data){
+            // console.log(data);
+            if(data.status == 1 ){
+                $("#msg").text("Data Deleted Successfully");
+                    $("#msg").show();
+                $(mythis).closest("tr").fadeOut();
+            }
+            if(data.status == 0 ){
+                $("#msg").text("Unable to Delete Data");
+                    $("#msg").show();
+                
+            }
+        },
+    });
+});
+
+// update Data
+$("tbody").on("click" , ".btn-edit" , function(){
+    console.log("Edit Button Clicked");
+    let id = $(this).attr("data-sid");
+    let csr = $("input[name=csrfmiddlewaretoken]").val();
+    // console.log(id);
+    mydata = {sid :id , csrfmiddlewaretoken:csr};
+   
+    $.ajax({
+        url:"{% url 'edit' %}",
+        method: "POST",
+        data:mydata,
+        dataType:"json",
+        success:function(data){
+            // console.log(data);
+            $("#stuid").val(data.id);
+            $("#nameid").val(data.name);
+            $("#emailid").val(data.email);
+            $("#passwordid").val(data.password);
+           
+          
+        },
+    });
+});
+
+</script>
